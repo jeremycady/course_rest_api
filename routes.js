@@ -71,8 +71,75 @@ router.post('/users', asyncHandler( async (req, res) => {
 }));
 
 router.get('/courses', async (req, res) => {
-  const courses = await Course.findAll();
+  const courses = await Course.findAll({
+    attributes: [
+      'id',
+      'title',
+      'description',
+      'estimatedTime',
+      'materialsNeeded'
+    ],
+    include: [
+      {
+        model: User,
+        as: 'owner',
+        attributes: [
+          'firstName',
+          'lastname',
+          'emailAddress',
+        ],
+      },
+    ],
+  });
+  // console.log(courses.map(course => course.get({ plain: true })));
   res.json(courses);
 });
+
+router.post('/courses', authenticateUser, asyncHandler( async (req, res) => {
+  const user = req.currentUser;
+  const course = req.body;
+
+  course.UserId = user.id;
+  console.log(course.UserId)
+  console.log(user.id);
+  
+  try {
+    await Course.create(course);
+    res.status(201).send({message: 'Course has been created'});
+    
+  } catch(error) {
+    if (error.name === 'SequelizeValidationError') {
+      const errors = error.errors.map(err => err.message);
+      res.status(400).json({ errors });   
+    } else {
+      throw error;
+    }
+  }
+}));
+
+router.get('/courses/:id', asyncHandler( async (req, res) => {
+  const course = await Course.findByPk(req.params.id, {
+    attributes: [
+      'id',
+      'title',
+      'description',
+      'estimatedTime',
+      'materialsNeeded'
+    ],
+    include: [
+      {
+        model: User,
+        as: 'owner',
+        attributes: [
+          'firstName',
+          'lastname',
+          'emailAddress',
+        ],
+      },
+    ],
+  });
+
+  res.json(course);
+}));
 
 module.exports = router;
