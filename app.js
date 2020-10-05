@@ -18,9 +18,6 @@ app.use(morgan('dev'));
 // Setup request body JSON parsing.
 app.use(express.json());
 
-// sync sequelize
-sequelize.sync()
-
 // TODO setup your api routes here
 app.use('/api', routes);
 
