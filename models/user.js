@@ -1,4 +1,6 @@
 'use strict';
+const bcryptjs = require('bcryptjs');
+
 const {
   Model
 } = require('sequelize');
@@ -19,10 +21,61 @@ module.exports = (sequelize, DataTypes) => {
       primaryKey: true,
       autoIncrement: true
     },
-    firstName: DataTypes.STRING,
-    lastName: DataTypes.STRING,
-    emailAddress: DataTypes.STRING,
-    password: DataTypes.STRING
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: 'A first name is required'
+        },
+        notEmpty: {
+          msg: 'A first name is required'
+        }
+      }
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: 'A last name is required'
+        },
+        notEmpty: {
+          msg: 'A last name is required'
+        }
+      }
+    },
+    emailAddress: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: {
+        msg: 'Please try another email address'
+      },
+      validate: {
+        notNull: {
+          msg: 'An email address is required'
+        },
+        isEmail: {
+          msg: 'Please provide a valid email address'
+        }
+      },
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      validate: {
+        notNull: {
+          msg: 'A password is required'
+        },
+        notEmpty: {
+          msg: 'A password is required'
+        },
+      },
+      set(val) {
+        const hashedPassword = bcryptjs.hashSync(val, 10);
+        this.setDataValue('password', hashedPassword);
+      },
+    },
   }, {
     sequelize,
     modelName: 'User',
