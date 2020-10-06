@@ -25,10 +25,6 @@ module.exports = (sequelize) => {
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: {
-        args: true,
-        msg: 'Please provide another email address'
-      },
       validate: {
         notNull: {
           msg: 'A first name is required'
@@ -53,6 +49,9 @@ module.exports = (sequelize) => {
     emailAddress: {
       type: DataTypes.STRING,
       allowNull: false,
+      unique: {
+        msg: 'Please provide another email address'
+      },
       validate: {
         notNull: {
           msg: 'An email address is required'
