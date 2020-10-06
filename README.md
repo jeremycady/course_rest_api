@@ -20,6 +20,12 @@ npm install
 
 ```
 
+Create and seed data in the database.
+
+```
+npm run seed
+```
+
 To start the application.
 
 ```
