@@ -20,13 +20,7 @@ npm install
 
 ```
 
-Second, seed the SQLite database.
-
-```
-npm run seed
-```
-
-And lastly, start the application.
+To start the application.
 
 ```
 npm start
