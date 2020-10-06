@@ -57,8 +57,8 @@ router.get('/users', authenticateUser, asyncHandler( async (req, res) => {
 
 router.post('/users', asyncHandler( async (req, res) => {
   try {
-    await User.create(req.body);
-    res.status(201).send({message: 'Account has been created'});
+    const createUser = await User.create(req.body);
+    res.status(201).set('Location', `/`).end();
     
   } catch(error) {
     if (error.name === 'SequelizeValidationError' || 'SequelizeUniqueConstraintError') {
@@ -100,13 +100,10 @@ router.post('/courses', authenticateUser, asyncHandler( async (req, res) => {
   const course = req.body;
 
   course.UserId = user.id;
-  console.log(course.UserId)
-  console.log(user.id);
   
   try {
-    await Course.create(course);
-    res.status(201).send({message: 'Course has been created'});
-    
+    const createCourse = await Course.create(course);
+    res.status(201).set('Location', `/courses/${createCourse.id}`).end();
   } catch(error) {
     if (error.name === 'SequelizeValidationError') {
       const errors = error.errors.map(err => err.message);
@@ -140,6 +137,65 @@ router.get('/courses/:id', asyncHandler( async (req, res) => {
   });
 
   res.json(course);
+}));
+
+router.put('/courses/:id', authenticateUser, asyncHandler( async (req, res) => {
+  const user = req.currentUser;
+  const course = await Course.findByPk(req.params.id, {
+    attributes: [
+      'userId'
+    ]
+  });
+  if (user.id === course._previousDataValues.userId) {
+    try {
+      await Course.update({
+        title: req.body.title,
+        description: req.body.description,
+        estimatedTime: req.body.estimatedTime,
+        materialsNeeded: req.body.materialsNeeded
+      },
+      {
+        where: {
+          id: req.params.id
+        }
+      });
+      res.status(204).end();
+    } catch(error) {
+      if (error.name === 'SequelizeValidationError') {
+        const errors = error.errors.map(err => err.message);
+        res.status(400).json({ errors });   
+      } else {
+        throw error;
+      }
+    }
+  } else {
+    res.status(403).json({ message: 'You are not authorized to make changes to this course'});
+  }
+}));
+
+router.delete('/courses/:id', authenticateUser, asyncHandler( async (req,res) => {
+  const user = req.currentUser;
+  const course = await Course.findByPk(req.params.id, {
+    attributes: [
+      'userId'
+    ]
+  });
+  if (user.id === course._previousDataValues.userId) {
+    try {
+      const getCourse = await Course.findByPk(req.params.id);
+      await getCourse.destroy();
+      res.status(204).end();
+    } catch(error) {
+      if (error.name === 'SequelizeValidationError') {
+        const errors = error.errors.map(err => err.message);
+        res.status(400).json({ errors });   
+      } else {
+        throw error;
+      }
+    }
+  } else {
+    res.status(403).json({ message: 'You are not authorized to delete this course'});
+  }
 }));
 
 module.exports = router;
